@@ -23,11 +23,11 @@ module Emerald
       return File.open(cache_path(key))
     end
 
-    private
+    def cache_path(key)
+      File.join(@full_cache_dir, key)
+    end
 
-      def cache_path(key)
-        File.join(@full_cache_dir, key)
-      end
+    private
 
       def tmp_path(key)
         File.join(@full_cache_dir, key + '.tmp')
