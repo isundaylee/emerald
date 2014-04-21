@@ -1,6 +1,7 @@
 module Emerald
   class ID3Writer
     require 'taglib'
+    require 'ruby-pinyin'
 
     def self.write(path, info, cover)
       TagLib::MPEG::File.open(path) do |f|
@@ -25,6 +26,12 @@ module Emerald
 
         # Add lyrics
         set_lyrics(tag, info[:lyrics])
+
+        # Sorting fields
+        set_text_frame(tag, 'TSOT', PinYin.sentence(info[:title]))
+        set_text_frame(tag, 'TSOA', PinYin.sentence(info[:album]))
+        set_text_frame(tag, 'TSOP', PinYin.sentence(info[:artist]))
+        set_text_frame(tag, 'TSO2', PinYin.sentence(info[:album_artist]))
 
         f.save
       end

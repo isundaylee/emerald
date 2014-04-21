@@ -23,4 +23,5 @@ Gem::Specification.new do |spec|
 
   spec.add_runtime_dependency     "nokogiri"
   spec.add_runtime_dependency     "taglib-ruby"
+  spec.add_runtime_dependency     "ruby-pinyin"
 end
