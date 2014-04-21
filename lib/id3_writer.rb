@@ -33,6 +33,9 @@ module Emerald
         set_text_frame(tag, 'TSOP', PinYin.sentence(info[:artist]))
         set_text_frame(tag, 'TSO2', PinYin.sentence(info[:album_artist]))
 
+        # Cover image
+        set_cover(tag, cover) if cover
+
         f.save
       end
     end
@@ -69,6 +72,16 @@ module Emerald
         end
 
         nls.join("\n")
+      end
+
+      def self.set_cover(tag, cover)
+        apic = TagLib::ID3v2::AttachedPictureFrame.new
+        apic.mime_type = 'image/png'
+        apic.description = 'Cover'
+        apic.type = TagLib::ID3v2::AttachedPictureFrame::FrontCover
+        apic.picture = cover
+
+        tag.add_frame(apic)
       end
 
   end

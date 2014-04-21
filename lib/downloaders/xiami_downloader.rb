@@ -30,7 +30,7 @@ module Emerald
         tmp_filename = Dir::Tmpname.make_tmpname(["/tmp/emerald", ".mp3"], nil)
         File.write(tmp_filename, raw)
 
-        Emerald::ID3Writer.write(tmp_filename, extract_metadata(id), nil)
+        Emerald::ID3Writer.write(tmp_filename, extract_metadata(id), retrieve_cover(id))
 
         result = File.read(tmp_filename)
         FileUtils.rm(tmp_filename)
@@ -61,6 +61,46 @@ module Emerald
           lyrics_url && !lyrics_url.text.strip.empty? ?
             @cacher.download(lyrics_url.text.strip, "#{id}.lrc").read :
             nil
+        end
+
+        def retrieve_cover(id)
+          info = retrieve_info(id)
+
+          cover_url = info.search('pic')
+          return nil unless (cover_url && !cover_url.text.strip.empty?)
+
+          cover_url = cover_url.text.strip
+
+          # Match to see if high resolution version is available
+          regex = /(\/[0-9]*)(_[0-9])(\.)/
+
+          if regex =~ cover_url
+            # Retrieve the high-res version
+            high_res_url = cover_url.gsub(regex, '\1\3')
+
+            return crop_cover(@cacher.download(high_res_url, "#{id}.cover_hq").read, 500)
+          else
+            # Fallback to low-res version
+            return @cacher.download(cover_url, "#{id}.cover").read
+          end
+        end
+
+        def crop_cover(cover, size)
+          require 'image_science'
+
+          tmp_filename = Dir::Tmpname.make_tmpname("/tmp/emerald", nil)
+          File.write(tmp_filename, cover)
+
+          ImageScience.with_image(tmp_filename) do |img|
+            img.cropped_thumbnail(size) do |thumb|
+              thumb.save tmp_filename
+            end
+          end
+
+          result = File.read(tmp_filename)
+          FileUtils.rm(tmp_filename)
+
+          result
         end
 
         def extract_url(id)
