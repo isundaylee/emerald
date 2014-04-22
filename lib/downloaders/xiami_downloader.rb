@@ -13,6 +13,7 @@ module Emerald
       require 'id3_writer'
       require 'utils/xiami_location_decoder'
 
+      URL_REGEX = /xiami\.com\/song\/([0-9]*)/
       SONG_INFO_URL = 'http://www.xiami.com/song/playlist/id/%d/object_name/default/object_id/0'
       ALBUM_PAGE_URL = 'http://www.xiami.com/album/%d'
 
@@ -36,6 +37,18 @@ module Emerald
         FileUtils.rm(tmp_filename)
 
         result
+      end
+
+      def download_url(url, options = {})
+        match = URL_REGEX.match(url)
+
+        match ?
+          download(match[1].to_i, options) :
+          nil
+      end
+
+      def matches_url?(url)
+        URL_REGEX =~ url
       end
 
       private
