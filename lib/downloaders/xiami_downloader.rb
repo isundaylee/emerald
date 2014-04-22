@@ -17,16 +17,16 @@ module Emerald
       SONG_INFO_URL = 'http://www.xiami.com/song/playlist/id/%d/object_name/default/object_id/0'
       ALBUM_PAGE_URL = 'http://www.xiami.com/album/%d'
 
-      def type
+      def self.type
         :xiami
       end
 
-      def download(id, options = {})
+      def self.download(id, options = {})
         id = id.to_i
 
         url = extract_url(id)
 
-        raw = @cacher.download(url, "#{id}.mp3", show_progress: true).read
+        raw = cacher.download(url, "#{id}.mp3", show_progress: options[:show_progress]).read
 
         tmp_filename = Dir::Tmpname.make_tmpname(["/tmp/emerald", ".mp3"], nil)
         File.write(tmp_filename, raw)
@@ -39,7 +39,7 @@ module Emerald
         result
       end
 
-      def download_url(url, options = {})
+      def self.download_url(url, options = {})
         match = URL_REGEX.match(url)
 
         match ?
@@ -47,36 +47,36 @@ module Emerald
           nil
       end
 
-      def matches_url?(url)
+      def self.matches_url?(url)
         URL_REGEX =~ url
       end
 
       private
 
-        def retrieve_info(id)
+        def self.retrieve_info(id)
           info_url = SONG_INFO_URL % id
-          page = @cacher.download(info_url, "#{id}.info").read
+          page = cacher.download(info_url, "#{id}.info").read
           Nokogiri::XML(page)
         end
 
-        def retrieve_album_page(id)
+        def self.retrieve_album_page(id)
           info = retrieve_info(id)
           album_id = info.search('album_id').text.to_i
           album_page_url = ALBUM_PAGE_URL % album_id
-          page = @cacher.download(album_page_url, "album_#{album_id}.info").read
+          page = cacher.download(album_page_url, "album_#{album_id}.info").read
           Nokogiri::HTML(page)
         end
 
-        def retrieve_lyrics(id)
+        def self.retrieve_lyrics(id)
           info = retrieve_info(id)
 
           lyrics_url = info.search('lyric')
           lyrics_url && !lyrics_url.text.strip.empty? ?
-            @cacher.download(lyrics_url.text.strip, "#{id}.lrc").read :
+            cacher.download(lyrics_url.text.strip, "#{id}.lrc").read :
             nil
         end
 
-        def retrieve_cover(id)
+        def self.retrieve_cover(id)
           info = retrieve_info(id)
 
           cover_url = info.search('pic')
@@ -91,14 +91,14 @@ module Emerald
             # Retrieve the high-res version
             high_res_url = cover_url.gsub(regex, '\1\3')
 
-            return crop_cover(@cacher.download(high_res_url, "#{id}.cover_hq").read, 500)
+            return crop_cover(cacher.download(high_res_url, "#{id}.cover_hq").read, 500)
           else
             # Fallback to low-res version
-            return @cacher.download(cover_url, "#{id}.cover").read
+            return cacher.download(cover_url, "#{id}.cover").read
           end
         end
 
-        def crop_cover(cover, size)
+        def self.crop_cover(cover, size)
           require 'image_science'
 
           tmp_filename = Dir::Tmpname.make_tmpname("/tmp/emerald", nil)
@@ -116,7 +116,7 @@ module Emerald
           result
         end
 
-        def extract_url(id)
+        def self.extract_url(id)
           info = retrieve_info(id)
           url = info.search('location').text
 
@@ -124,7 +124,7 @@ module Emerald
           return Emerald::Utils::XiamiLocationDecoder.decode(url)
         end
 
-        def extract_album_artist(id)
+        def self.extract_album_artist(id)
           album_page = retrieve_album_page(id)
 
           album_page.css('div#album_info > table tr').each do |tr|
@@ -135,7 +135,7 @@ module Emerald
           nil
         end
 
-        def extract_publish_year(id)
+        def self.extract_publish_year(id)
           album_page = retrieve_album_page(id)
 
           album_page.css('div#album_info > table tr').each do |tr|
@@ -146,7 +146,7 @@ module Emerald
           nil
         end
 
-        def extract_order(id)
+        def self.extract_order(id)
           album_page = retrieve_album_page(id)
 
           disc = 0
@@ -166,7 +166,7 @@ module Emerald
           return [nil, nil]
         end
 
-        def extract_metadata(id)
+        def self.extract_metadata(id)
           info = retrieve_info(id)
 
           disc, track = extract_order(id)
@@ -183,7 +183,7 @@ module Emerald
           }
         end
 
-        def output_filename(id, out_path)
+        def self.output_filename(id, out_path)
           metadata = extract_metadata(id)
 
           File.join(out_path, "#{metadata[:artist]} - #{metadata[:album]} - #{metadata[:title]}.mp3")

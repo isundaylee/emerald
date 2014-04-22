@@ -5,24 +5,24 @@ module Emerald
 
       require 'cacher'
 
-      def initialize
-        @cacher = Cacher.new(type.to_s)
-      end
-
-      def type
+      def self.type
         raise NotImplementedError
       end
 
-      def download(id, options = {})
+      def self.download(id, options = {})
         raise NotImplementedError
       end
 
-      def download_url(url, options = {})
+      def self.download_url(url, options = {})
         raise NotImplementedError
       end
 
-      def matches_url?(url)
+      def self.matches_url?(url)
         raise NotImplementedError
+      end
+
+      def self.cacher
+        @@cacher ||= Emerald::Cacher.new(type.to_s)
       end
 
     end
