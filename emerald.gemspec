@@ -8,8 +8,8 @@ Gem::Specification.new do |spec|
   spec.version       = Emerald::VERSION
   spec.authors       = ["Jiahao Li"]
   spec.email         = ["isundaylee.reg@gmail.com"]
-  spec.summary       = %q{Gem for downloading music from various website. }
-  spec.description   = %q{Gem for downloading music from various website. }
+  spec.summary       = %q{Gem for downloading music from various websites. }
+  spec.description   = %q{Gem for downloading music from various websites. }
   spec.homepage      = ""
   spec.license       = "MIT"
 
